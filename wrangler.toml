@@ -5,5 +5,5 @@ pages_build_output_dir = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "lp-fm-store-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "6e295a54-6fa1-4966-b5e9-c64b1807afe8"
 migrations_dir = "migrations"
