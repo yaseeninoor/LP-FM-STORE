@@ -13,6 +13,9 @@ async function identity(req,env){
  if(!team)throw Error("Cloudflare Access team domain is not configured.");
  const audClaim=Array.isArray(c.aud)?c.aud:[c.aud];
  if(c.iss!==`https://${team}`||!audClaim.length||audClaim.some(x=>typeof x!=="string"||!x.trim()))throw Error("Access token issuer or audience claim invalid.");
+ // ACCESS_AUD is optional because Cloudflare Access may not expose the AUD in the UI. If configured, enforce it strictly.
+ const expectedAud=str(env.ACCESS_AUD);
+ if(expectedAud&&!audClaim.includes(expectedAud))throw Error("Access token audience does not match configured ACCESS_AUD.");
  const now=Math.floor(Date.now()/1000);if(c.exp<now||(c.nbf&&c.nbf>now))throw Error("Access token expired.");
  const cr=await fetch(`https://${team}/cdn-cgi/access/certs`);if(!cr.ok)throw Error("Could not validate Access certificate.");
  const cert=await cr.json(),j=(cert.keys||[]).find(x=>x.kid===h.kid);if(!j)throw Error("Access signing key not found.");
