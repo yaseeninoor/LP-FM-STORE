@@ -10,8 +10,9 @@ async function identity(req,env){
  const p=t.split(".");if(p.length!==3)throw Error("Invalid Access token.");
  const h=JSON.parse(new TextDecoder().decode(b64(p[0]))),c=JSON.parse(new TextDecoder().decode(b64(p[1])));
  const team=(env.ACCESS_TEAM_DOMAIN||"").replace(/^https?:\/\//,"").replace(/\/$/,"");
- if(!team||!env.ACCESS_AUD)throw Error("Cloudflare Access settings are not configured.");
- if(c.iss!==`https://${team}`||!(Array.isArray(c.aud)?c.aud:[c.aud]).includes(env.ACCESS_AUD))throw Error("Access token audience or issuer mismatch.");
+ if(!team)throw Error("Cloudflare Access team domain is not configured.");
+ const audClaim=Array.isArray(c.aud)?c.aud:[c.aud];
+ if(c.iss!==`https://${team}`||!audClaim.length||audClaim.some(x=>typeof x!=="string"||!x.trim()))throw Error("Access token issuer or audience claim invalid.");
  const now=Math.floor(Date.now()/1000);if(c.exp<now||(c.nbf&&c.nbf>now))throw Error("Access token expired.");
  const cr=await fetch(`https://${team}/cdn-cgi/access/certs`);if(!cr.ok)throw Error("Could not validate Access certificate.");
  const cert=await cr.json(),j=(cert.keys||[]).find(x=>x.kid===h.kid);if(!j)throw Error("Access signing key not found.");
